@@ -177,16 +177,18 @@ const tasks = [
   },
 ];
 
-$(function () {
-  if (!$('#task-grid').length) return;
+document.addEventListener('DOMContentLoaded', function () {
+  const grid = document.getElementById('task-grid');
+  if (!grid) return;
 
+  const search = document.getElementById('task-search');
   let filters = { category: 'all', difficulty: 'all', model: 'all', status: 'all', sort: 'catalog' };
   const levels = { beginner: 1, intermediate: 2, advanced: 3 };
   const colors = { beginner: 'text-success', intermediate: 'text-warning', advanced: 'text-danger' };
 
   function showTasks() {
-    const query = $('#task-search').val().trim().toLowerCase();
-    let list = tasks.filter(function (task) {
+    const query = search.value.trim().toLowerCase();
+    const list = tasks.filter(function (task) {
       const text = (task.title + ' ' + task.description + ' ' + task.tags.join(' ')).toLowerCase();
       return text.includes(query)
         && (filters.category === 'all' || task.category === filters.category)
@@ -199,9 +201,9 @@ $(function () {
     if (filters.sort === 'difficulty-asc') list.sort((a, b) => levels[a.difficulty] - levels[b.difficulty]);
     if (filters.sort === 'difficulty-desc') list.sort((a, b) => levels[b.difficulty] - levels[a.difficulty]);
 
-    $('#task-grid').empty();
+    grid.innerHTML = '';
     list.forEach(function (task) {
-      $('#task-grid').append(`
+      grid.insertAdjacentHTML('beforeend', `
         <article class="task-card col-12 col-md-6 col-xl-4" data-task-id="${task.id}">
           <div class="card h-100 p-3 shadow-sm">
             <div class="d-flex justify-content-between mb-2">
@@ -216,27 +218,39 @@ $(function () {
         </article>
       `);
     });
-    $('#catalog-results-status, #filters-summary').text(list.length + ' exercises');
-    $('#catalog-empty').toggleClass('is-hidden', list.length > 0);
+    document.getElementById('catalog-results-status').textContent = list.length + ' exercises';
+    document.getElementById('filters-summary').textContent = list.length + ' exercises';
+    document.getElementById('catalog-empty').classList.toggle('is-hidden', list.length > 0);
   }
 
-  $('#task-search').on('input', showTasks);
+  search.addEventListener('input', showTasks);
 
-  $('[data-action="filter-tasks"]').on('click', function () {
-    const group = $(this).data('filter-group');
-    filters[group] = $(this).data('filter-value');
-    $('[data-filter-group="' + group + '"]').removeClass('is-selected').attr('aria-pressed', 'false');
-    $(this).addClass('is-selected').attr('aria-pressed', 'true');
-    showTasks();
+  document.querySelectorAll('[data-action="filter-tasks"]').forEach(function (button) {
+    button.addEventListener('click', function () {
+      const group = this.dataset.filterGroup;
+      filters[group] = this.dataset.filterValue;
+      document.querySelectorAll('[data-filter-group="' + group + '"]').forEach(function (item) {
+        item.classList.remove('is-selected');
+        item.setAttribute('aria-pressed', 'false');
+      });
+      this.classList.add('is-selected');
+      this.setAttribute('aria-pressed', 'true');
+      showTasks();
+    });
   });
 
-  $('[data-action="clear-filters"]').on('click', function (event) {
-    event.preventDefault();
-    filters = { category: 'all', difficulty: 'all', model: 'all', status: 'all', sort: 'catalog' };
-    $('#task-search').val('');
-    $('.filter-control').removeClass('is-selected').attr('aria-pressed', 'false');
-    $('[data-filter-value="all"], [data-filter-value="catalog"]').addClass('is-selected').attr('aria-pressed', 'true');
-    showTasks();
+  document.querySelectorAll('[data-action="clear-filters"]').forEach(function (button) {
+    button.addEventListener('click', function (event) {
+      event.preventDefault();
+      filters = { category: 'all', difficulty: 'all', model: 'all', status: 'all', sort: 'catalog' };
+      search.value = '';
+      document.querySelectorAll('.filter-control').forEach(function (item) {
+        const selected = item.dataset.filterValue === 'all' || item.dataset.filterValue === 'catalog';
+        item.classList.toggle('is-selected', selected);
+        item.setAttribute('aria-pressed', String(selected));
+      });
+      showTasks();
+    });
   });
 
   showTasks();

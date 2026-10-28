@@ -1,25 +1,29 @@
-$(function () {
+document.addEventListener('DOMContentLoaded', function () {
   const id = new URLSearchParams(location.search).get('id') || 't002';
   const task = tasks.find(task => task.id === id);
   if (!task) {
-    $('#main-content').text('Task not found. Choose a task from the catalog.');
+    document.getElementById('main-content').textContent = 'Task not found. Choose a task from the catalog.';
     return;
   }
 
-  $('#task-title, #task-breadcrumb').text(task.title);
-  $('#task-number').text('#' + task.id.slice(1));
-  $('#task-description').text(task.description);
-  $('#task-difficulty').text(task.difficulty);
-  $('#task-category').text(task.category.replaceAll('-', ' '));
-  $('#prompt-task-id').val(task.id);
+  document.getElementById('task-title').textContent = task.title;
+  document.getElementById('task-breadcrumb').textContent = task.title;
+  document.getElementById('task-number').textContent = '#' + task.id.slice(1);
+  document.getElementById('task-description').textContent = task.description;
+  document.getElementById('task-difficulty').textContent = task.difficulty;
+  document.getElementById('task-category').textContent = task.category.replaceAll('-', ' ');
+  document.getElementById('prompt-task-id').value = task.id;
   if (task.id !== 't002') {
-    $('#task-brief .panel-body > p').first().text(task.description);
-    $('#task-input-data').text(task.description);
-    $('#task-requirements').html('<li>Define a role.</li><li>Specify the format and length.</li><li>Add an example and tone.</li>');
-    $('#hint-panel .card-body p').text('Include a role, task, format, length limit, example and tone.');
+    document.querySelector('#task-brief .panel-body > p').textContent = task.description;
+    document.getElementById('task-input-data').textContent = task.description;
+    document.getElementById('task-requirements').innerHTML = '<li>Define a role.</li><li>Specify the format and length.</li><li>Add an example and tone.</li>';
+    document.querySelector('#hint-panel .card-body p').textContent = 'Include a role, task, format, length limit, example and tone.';
   }
-  $('#prompt-help').text('Simple demo: the check looks for keywords in your prompt.');
+  document.getElementById('prompt-help').textContent = 'Simple demo: the check looks for keywords in your prompt.';
 
+  const input = document.getElementById('prompt-input');
+  const result = document.getElementById('prompt-success');
+  const error = document.getElementById('prompt-error');
   const checks = {
     role: ['you are', 'act as'],
     format: ['list', 'table', 'json'],
@@ -29,27 +33,31 @@ $(function () {
     clarity: ['write', 'summarize', 'create']
   };
 
-  $('#submit-btn').on('click', function () {
-    const prompt = $('#prompt-input').val().trim().toLowerCase();
-    $('#prompt-success').addClass('is-hidden');
-    $('#prompt-error').text('Enter your prompt.').toggleClass('is-hidden', prompt.length > 0);
+  document.getElementById('submit-btn').addEventListener('click', function () {
+    const prompt = input.value.trim().toLowerCase();
+    result.classList.add('is-hidden');
+    error.textContent = 'Enter your prompt.';
+    error.classList.toggle('is-hidden', prompt.length > 0);
     if (!prompt) return;
 
     let score = 0;
     for (const criterion in checks) {
       if (checks[criterion].some(word => prompt.includes(word))) {
-        score += Number($('#criterion-' + criterion).data('weight')) * 10;
+        score += Number(document.getElementById('criterion-' + criterion).dataset.weight) * 10;
       }
     }
-    $('#prompt-success').text('Demo score: ' + score.toFixed(2) + ' / 10').removeClass('is-hidden');
+    result.textContent = 'Demo score: ' + score.toFixed(2) + ' / 10';
+    result.classList.remove('is-hidden');
   });
 
-  $('#prompt-input').on('input', function () {
-    $('#char-count').text(this.value.length + ' / 2000');
-    $('#prompt-success, #prompt-error').addClass('is-hidden');
+  input.addEventListener('input', function () {
+    document.getElementById('char-count').textContent = this.value.length + ' / 2000';
+    result.classList.add('is-hidden');
+    error.classList.add('is-hidden');
   });
-  $('#prompt-form').on('reset', function () {
-    $('#char-count').text('0 / 2000');
-    $('#prompt-success, #prompt-error').addClass('is-hidden');
+  document.getElementById('prompt-form').addEventListener('reset', function () {
+    document.getElementById('char-count').textContent = '0 / 2000';
+    result.classList.add('is-hidden');
+    error.classList.add('is-hidden');
   });
 });
